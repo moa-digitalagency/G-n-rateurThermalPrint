@@ -20,7 +20,7 @@ def generate_image():
     elements = data.get('elements', [])
     
     width = int(5.0 * CM_TO_PIXELS)
-    padding = 30
+    padding = 50
     element_spacing = 60
     border_width = 3
     qr_size_cm = 4.0
