@@ -19,10 +19,11 @@ def generate_image():
     data = request.json
     elements = data.get('elements', [])
     
-    width = int(5.7 * CM_TO_PIXELS)
+    width = int(5.5 * CM_TO_PIXELS)
     padding = 30
     element_spacing = 40
     border_width = 3
+    qr_size_cm = 5.0
     
     temp_img = Image.new('RGB', (width, 10000), 'white')
     temp_draw = ImageDraw.Draw(temp_img)
@@ -116,16 +117,16 @@ def generate_image():
         
         elif element_type == 'qrcode':
             url = element.get('content', '')
-            qr = qrcode.QRCode(version=1, box_size=6, border=2)
+            qr = qrcode.QRCode(version=1, box_size=10, border=2)
             qr.add_data(url)
             qr.make(fit=True)
             qr_img = qr.make_image(fill_color="black", back_color="white")
             qr_img = qr_img.convert('RGB')
             
-            if qr_img.size[0] > max_content_width:
-                ratio = max_content_width / qr_img.size[0]
-                new_size = (int(qr_img.size[0] * ratio), int(qr_img.size[1] * ratio))
-                qr_img = qr_img.resize(new_size, Image.Resampling.LANCZOS)
+            target_qr_size = int(qr_size_cm * CM_TO_PIXELS)
+            ratio = target_qr_size / qr_img.size[0]
+            new_size = (int(qr_img.size[0] * ratio), int(qr_img.size[1] * ratio))
+            qr_img = qr_img.resize(new_size, Image.Resampling.LANCZOS)
             
             elements_data.append(('qrcode', qr_img, None, qr_img.size[0], qr_img.size[1], None))
         
@@ -156,11 +157,13 @@ def generate_image():
     y_position = padding
     for item in elements_data:
         if item[0] == 'text' or item[0] == 'title':
-            x_start = padding
             y_pos = y_position
             
             for i, line in enumerate(item[1]):
-                draw.text((x_start, y_pos), line, fill='black', font=item[2])
+                bbox = draw.textbbox((0, 0), line, font=item[2])
+                line_width = bbox[2] - bbox[0]
+                x_centered = (width - line_width) // 2
+                draw.text((x_centered, y_pos), line, fill='black', font=item[2])
                 y_pos += item[5][i] + 5
             
             y_position += item[4] + element_spacing
