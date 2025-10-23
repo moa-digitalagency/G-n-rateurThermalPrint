@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur d'Images</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Générateur d'Images</h1>
+            <p>Créez des images personnalisées de 5.8 cm de hauteur</p>
+        </header>
+
+        <div class="content">
+            <div class="controls">
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="addElement('title')">
+                        <span class="icon">📌</span> Titre
+                    </button>
+                    <button class="btn btn-primary" onclick="addElement('text')">
+                        <span class="icon">📄</span> Paragraphe
+                    </button>
+                    <button class="btn btn-primary" onclick="addElement('qrcode')">
+                        <span class="icon">📱</span> QR Code
+                    </button>
+                    <button class="btn btn-primary" onclick="addElement('image')">
+                        <span class="icon">🖼️</span> Image
+                    </button>
+                </div>
+            </div>
+
+            <div id="elements-container" class="elements-container">
+                <div class="empty-state">
+                    <div class="empty-icon">✨</div>
+                    <p>Commencez par ajouter un élément</p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="clearAll()">
+                    <span class="icon">🗑️</span> Tout effacer
+                </button>
+                <button class="btn btn-success" onclick="generateImage()">
+                    <span class="icon">🎨</span> Générer l'image
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
