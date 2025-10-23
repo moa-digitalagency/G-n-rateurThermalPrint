@@ -4,6 +4,7 @@ import qrcode
 import io
 import base64
 import os
+import math
 
 app = Flask(__name__)
 
@@ -18,19 +19,20 @@ def generate_image():
     data = request.json
     elements = data.get('elements', [])
     
-    height = int(5.8 * CM_TO_PIXELS)
+    width = int(5.7 * CM_TO_PIXELS)
     padding = 30
     element_spacing = 40
+    border_width = 3
     
-    temp_img = Image.new('RGB', (10000, height), 'white')
+    temp_img = Image.new('RGB', (width, 10000), 'white')
     temp_draw = ImageDraw.Draw(temp_img)
     
     font_normal = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
     font_bold = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
     font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 38)
     
-    widths = []
-    max_content_height = height - 2 * padding
+    elements_data = []
+    max_content_width = width - 2 * padding
     
     for element in elements:
         element_type = element.get('type')
@@ -47,9 +49,9 @@ def generate_image():
             for word in words:
                 test_line = ' '.join(current_line + [word])
                 bbox = temp_draw.textbbox((0, 0), test_line, font=font)
-                text_height = bbox[3] - bbox[1]
+                text_width = bbox[2] - bbox[0]
                 
-                if len(current_line) == 0 or text_height <= max_content_height:
+                if len(current_line) == 0 or text_width <= max_content_width:
                     current_line.append(word)
                 else:
                     if current_line:
@@ -73,7 +75,7 @@ def generate_image():
                     max_line_width = line_width
             
             total_text_height -= 5
-            widths.append(('text', lines, font, max_line_width, total_text_height, line_heights))
+            elements_data.append(('text', lines, font, max_line_width, total_text_height, line_heights))
         
         elif element_type == 'title':
             content = element.get('content', '')
@@ -84,9 +86,9 @@ def generate_image():
             for word in words:
                 test_line = ' '.join(current_line + [word])
                 bbox = temp_draw.textbbox((0, 0), test_line, font=font_title)
-                text_height = bbox[3] - bbox[1]
+                text_width = bbox[2] - bbox[0]
                 
-                if len(current_line) == 0 or text_height <= max_content_height:
+                if len(current_line) == 0 or text_width <= max_content_width:
                     current_line.append(word)
                 else:
                     if current_line:
@@ -110,7 +112,7 @@ def generate_image():
                     max_line_width = line_width
             
             total_text_height -= 5
-            widths.append(('title', lines, font_title, max_line_width, total_text_height, line_heights))
+            elements_data.append(('title', lines, font_title, max_line_width, total_text_height, line_heights))
         
         elif element_type == 'qrcode':
             url = element.get('content', '')
@@ -120,12 +122,12 @@ def generate_image():
             qr_img = qr.make_image(fill_color="black", back_color="white")
             qr_img = qr_img.convert('RGB')
             
-            if qr_img.size[1] > max_content_height:
-                ratio = max_content_height / qr_img.size[1]
+            if qr_img.size[0] > max_content_width:
+                ratio = max_content_width / qr_img.size[0]
                 new_size = (int(qr_img.size[0] * ratio), int(qr_img.size[1] * ratio))
                 qr_img = qr_img.resize(new_size, Image.Resampling.LANCZOS)
             
-            widths.append(('qrcode', qr_img, None, qr_img.size[0], qr_img.size[1], None))
+            elements_data.append(('qrcode', qr_img, None, qr_img.size[0], qr_img.size[1], None))
         
         elif element_type == 'image':
             image_data = element.get('content', '')
@@ -136,40 +138,98 @@ def generate_image():
             uploaded_img = Image.open(io.BytesIO(img_bytes))
             uploaded_img = uploaded_img.convert('RGB')
             
-            if uploaded_img.size[1] > max_content_height:
-                ratio = max_content_height / uploaded_img.size[1]
+            if uploaded_img.size[0] > max_content_width:
+                ratio = max_content_width / uploaded_img.size[0]
                 new_size = (int(uploaded_img.size[0] * ratio), int(uploaded_img.size[1] * ratio))
                 uploaded_img = uploaded_img.resize(new_size, Image.Resampling.LANCZOS)
             
-            widths.append(('image', uploaded_img, None, uploaded_img.size[0], uploaded_img.size[1], None))
+            elements_data.append(('image', uploaded_img, None, uploaded_img.size[0], uploaded_img.size[1], None))
     
-    total_width = padding
-    for item in widths:
-        total_width += item[3] + element_spacing
-    total_width = total_width - element_spacing + padding
+    total_height = padding
+    for item in elements_data:
+        total_height += item[4] + element_spacing
+    total_height = total_height - element_spacing + padding
     
-    final_img = Image.new('RGB', (total_width, height), 'white')
+    final_img = Image.new('RGB', (width, total_height), 'white')
     draw = ImageDraw.Draw(final_img)
     
-    x_position = padding
-    for item in widths:
+    y_position = padding
+    for item in elements_data:
         if item[0] == 'text' or item[0] == 'title':
-            y_start = (height - item[4]) // 2
-            y_pos = y_start
+            x_start = padding
+            y_pos = y_position
             
             for i, line in enumerate(item[1]):
-                draw.text((x_position, y_pos), line, fill='black', font=item[2])
+                draw.text((x_start, y_pos), line, fill='black', font=item[2])
                 y_pos += item[5][i] + 5
             
-            x_position += item[3] + element_spacing
+            y_position += item[4] + element_spacing
         
         elif item[0] == 'qrcode' or item[0] == 'image':
-            y_center = (height - item[4]) // 2
-            final_img.paste(item[1], (x_position, y_center))
-            x_position += item[3] + element_spacing
+            x_center = (width - item[3]) // 2
+            final_img.paste(item[1], (x_center, y_position))
+            y_position += item[4] + element_spacing
+    
+    bordered_img = Image.new('RGB', (width, total_height), 'white')
+    bordered_draw = ImageDraw.Draw(bordered_img)
+    bordered_img.paste(final_img, (0, 0))
+    
+    corner_radius = 15
+    dash_length = 10
+    gap_length = 5
+    inset = border_width // 2
+    
+    def draw_dashed_line(draw, x1, y1, x2, y2, dash_len, gap_len, width):
+        total_length = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        if total_length == 0:
+            return
+        
+        dx = (x2 - x1) / total_length
+        dy = (y2 - y1) / total_length
+        
+        distance = 0
+        while distance < total_length:
+            dash_end = min(distance + dash_len, total_length)
+            start_x = x1 + dx * distance
+            start_y = y1 + dy * distance
+            end_x = x1 + dx * dash_end
+            end_y = y1 + dy * dash_end
+            draw.line([(start_x, start_y), (end_x, end_y)], fill='black', width=width)
+            distance += dash_len + gap_len
+    
+    def draw_dashed_arc(draw, center_x, center_y, radius, start_angle, end_angle, dash_len, gap_len, width):
+        arc_length = radius * abs(end_angle - start_angle) * math.pi / 180
+        angle_step = 1
+        
+        distance = 0
+        angle = start_angle
+        
+        while angle < end_angle:
+            if distance % (dash_len + gap_len) < dash_len:
+                x = center_x + radius * math.cos(angle * math.pi / 180)
+                y = center_y + radius * math.sin(angle * math.pi / 180)
+                
+                next_angle = min(angle + angle_step, end_angle)
+                next_x = center_x + radius * math.cos(next_angle * math.pi / 180)
+                next_y = center_y + radius * math.sin(next_angle * math.pi / 180)
+                
+                draw.line([(x, y), (next_x, next_y)], fill='black', width=width)
+            
+            angle += angle_step
+            distance += radius * angle_step * math.pi / 180
+    
+    draw_dashed_line(bordered_draw, corner_radius + inset, inset, width - corner_radius - inset, inset, dash_length, gap_length, border_width)
+    draw_dashed_line(bordered_draw, width - inset, corner_radius + inset, width - inset, total_height - corner_radius - inset, dash_length, gap_length, border_width)
+    draw_dashed_line(bordered_draw, width - corner_radius - inset, total_height - inset, corner_radius + inset, total_height - inset, dash_length, gap_length, border_width)
+    draw_dashed_line(bordered_draw, inset, total_height - corner_radius - inset, inset, corner_radius + inset, dash_length, gap_length, border_width)
+    
+    draw_dashed_arc(bordered_draw, corner_radius + inset, corner_radius + inset, corner_radius, 180, 270, dash_length, gap_length, border_width)
+    draw_dashed_arc(bordered_draw, width - corner_radius - inset, corner_radius + inset, corner_radius, 270, 360, dash_length, gap_length, border_width)
+    draw_dashed_arc(bordered_draw, width - corner_radius - inset, total_height - corner_radius - inset, corner_radius, 0, 90, dash_length, gap_length, border_width)
+    draw_dashed_arc(bordered_draw, corner_radius + inset, total_height - corner_radius - inset, corner_radius, 90, 180, dash_length, gap_length, border_width)
     
     img_io = io.BytesIO()
-    final_img.save(img_io, 'PNG', dpi=(300, 300))
+    bordered_img.save(img_io, 'PNG', dpi=(300, 300))
     img_io.seek(0)
     
     return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='generated_image.png')
