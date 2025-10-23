@@ -21,7 +21,7 @@ def generate_image():
     
     width = int(5.0 * CM_TO_PIXELS)
     padding = 30
-    element_spacing = 40
+    element_spacing = 60
     border_width = 3
     qr_size_cm = 4.0
     
@@ -71,15 +71,15 @@ def generate_image():
                 line_width = bbox[2] - bbox[0]
                 line_height = bbox[3] - bbox[1]
                 line_heights.append(line_height)
-                total_text_height += line_height + 5
+                total_text_height += line_height + 15
                 if line_width > max_line_width:
                     max_line_width = line_width
             
-            total_text_height -= 5
+            total_text_height -= 15
             elements_data.append(('text', lines, font, max_line_width, total_text_height, line_heights))
         
         elif element_type == 'title':
-            content = element.get('content', '')
+            content = element.get('content', '').upper()
             words = content.split()
             lines = []
             current_line = []
@@ -108,7 +108,7 @@ def generate_image():
                 line_width = bbox[2] - bbox[0]
                 line_height = bbox[3] - bbox[1]
                 line_heights.append(line_height)
-                total_text_height += line_height + 5
+                total_text_height += line_height + 15
                 if line_width > max_line_width:
                     max_line_width = line_width
             
@@ -164,7 +164,7 @@ def generate_image():
                 line_width = bbox[2] - bbox[0]
                 x_centered = (width - line_width) // 2
                 draw.text((x_centered, y_pos), line, fill='black', font=item[2])
-                y_pos += item[5][i] + 5
+                y_pos += item[5][i] + 15
             
             y_position += item[4] + element_spacing
         
@@ -180,7 +180,8 @@ def generate_image():
     corner_radius = 15
     dash_length = 10
     gap_length = 5
-    inset = border_width // 2
+    border_margin = 20
+    inset = border_width // 2 + border_margin
     
     def draw_dashed_line(draw, x1, y1, x2, y2, dash_len, gap_len, width):
         total_length = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
