@@ -1,5 +1,18 @@
 let elements = [];
 
+function addElementFromSelect() {
+    const select = document.getElementById('element-type-select');
+    const type = select.value;
+    
+    if (!type) {
+        alert('Veuillez sélectionner un type d\'élément.');
+        return;
+    }
+    
+    addElement(type);
+    select.value = '';
+}
+
 function addElement(type) {
     const container = document.getElementById('elements-container');
     

@@ -63,9 +63,57 @@ header p {
 }
 
 .button-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 12px;
+}
+
+.add-element-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.select-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: -6px;
+}
+
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+select {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    padding-right: 40px;
+}
+
+select:hover {
+    border-color: var(--primary-dark);
+    background-color: var(--bg-light);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .btn {
@@ -74,13 +122,13 @@ header p {
     justify-content: center;
     gap: 8px;
     padding: 14px 20px;
-    border: none;
+    border: 2px solid;
     border-radius: 12px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: var(--shadow);
+    background: white;
 }
 
 .btn:active {
@@ -88,32 +136,38 @@ header p {
 }
 
 .btn-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: white;
+}
+
+.btn-primary:hover {
     background: var(--primary);
     color: white;
 }
 
-.btn-primary:hover {
-    background: var(--primary-dark);
+.btn-secondary {
+    border-color: var(--secondary);
+    color: var(--secondary);
+    background: white;
 }
 
-.btn-secondary {
+.btn-secondary:hover {
     background: var(--secondary);
     color: white;
 }
 
-.btn-secondary:hover {
-    background: #475569;
-}
-
 .btn-success {
-    background: var(--success);
-    color: white;
+    border-color: var(--success);
+    color: var(--success);
+    background: white;
     font-size: 16px;
     padding: 16px 24px;
 }
 
 .btn-success:hover {
-    background: #059669;
+    background: var(--success);
+    color: white;
 }
 
 .icon {
@@ -123,6 +177,7 @@ header p {
 .elements-container {
     min-height: 200px;
     background: var(--bg-light);
+    border: 3px dashed var(--border);
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 24px;
@@ -175,18 +230,20 @@ header p {
 }
 
 .btn-remove {
-    background: var(--danger);
-    color: white;
-    border: none;
+    background: white;
+    color: var(--danger);
+    border: 2px solid var(--danger);
     border-radius: 8px;
     padding: 6px 12px;
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-weight: 600;
 }
 
 .btn-remove:hover {
-    background: #dc2626;
+    background: var(--danger);
+    color: white;
 }
 
 .element-content {
@@ -250,17 +307,19 @@ input[type="file"] {
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: var(--primary);
-    color: white;
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
-    font-weight: 500;
-    transition: background 0.2s ease;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .file-upload-btn:hover {
-    background: var(--primary-dark);
+    background: var(--primary);
+    color: white;
 }
 
 .file-name {

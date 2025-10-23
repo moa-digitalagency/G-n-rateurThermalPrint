@@ -15,18 +15,17 @@
 
         <div class="content">
             <div class="controls">
-                <div class="button-group">
-                    <button class="btn btn-primary" onclick="addElement('title')">
-                        <span class="icon">📌</span> Titre
-                    </button>
-                    <button class="btn btn-primary" onclick="addElement('text')">
-                        <span class="icon">📄</span> Paragraphe
-                    </button>
-                    <button class="btn btn-primary" onclick="addElement('qrcode')">
-                        <span class="icon">📱</span> QR Code
-                    </button>
-                    <button class="btn btn-primary" onclick="addElement('image')">
-                        <span class="icon">🖼️</span> Image
+                <div class="add-element-section">
+                    <label for="element-type-select" class="select-label">Type d'élément à ajouter</label>
+                    <select id="element-type-select" aria-label="Sélectionner le type d'élément à ajouter">
+                        <option value="">-- Sélectionner un type d'élément --</option>
+                        <option value="title">📌 Titre</option>
+                        <option value="text">📄 Paragraphe</option>
+                        <option value="qrcode">📱 QR Code</option>
+                        <option value="image">🖼️ Image</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="addElementFromSelect()" aria-describedby="element-type-select">
+                        <span class="icon">➕</span> Ajouter élément
                     </button>
                 </div>
             </div>
