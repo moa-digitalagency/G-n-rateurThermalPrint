@@ -19,18 +19,18 @@ def generate_image():
     data = request.json
     elements = data.get('elements', [])
     
-    width = int(5.5 * CM_TO_PIXELS)
+    width = int(5.0 * CM_TO_PIXELS)
     padding = 30
     element_spacing = 40
     border_width = 3
-    qr_size_cm = 5.0
+    qr_size_cm = 4.0
     
     temp_img = Image.new('RGB', (width, 10000), 'white')
     temp_draw = ImageDraw.Draw(temp_img)
     
     font_normal = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
     font_bold = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
-    font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 38)
+    font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
     
     elements_data = []
     max_content_width = width - 2 * padding
