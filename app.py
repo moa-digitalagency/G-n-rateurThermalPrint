@@ -118,6 +118,7 @@ def generate_image():
             qr.add_data(url)
             qr.make(fit=True)
             qr_img = qr.make_image(fill_color="black", back_color="white")
+            qr_img = qr_img.convert('RGB')
             
             if qr_img.size[1] > max_content_height:
                 ratio = max_content_height / qr_img.size[1]
@@ -133,6 +134,7 @@ def generate_image():
             
             img_bytes = base64.b64decode(image_data)
             uploaded_img = Image.open(io.BytesIO(img_bytes))
+            uploaded_img = uploaded_img.convert('RGB')
             
             if uploaded_img.size[1] > max_content_height:
                 ratio = max_content_height / uploaded_img.size[1]
