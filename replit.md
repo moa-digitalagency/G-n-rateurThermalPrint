@@ -4,7 +4,12 @@
 Application web moderne et responsive qui permet de créer des images personnalisées de 5.8 cm de hauteur avec une largeur variable selon le contenu. L'utilisateur peut ajouter différents types d'éléments (titres, paragraphes, QR codes, images) et générer une image PNG téléchargeable.
 
 ## Fonctionnalités
-- **Interface responsive** : Design mobile-first 100% responsive
+- **Interface responsive** : Design mobile-first 100% responsive avec design sobre
+- **Design moderne** : Boutons avec contours (outlined), zone de prévisualisation avec bordure en pointillés et coins arrondis
+- **Système d'ajout flexible** : 
+  - Menu déroulant pour sélectionner le type d'élément
+  - Ajout d'éléments dans n'importe quel ordre
+  - Interface accessible avec labels et attributs ARIA
 - **Ajout d'éléments multiples** :
   - Titres en gras
   - Paragraphes (avec option gras/normal)
@@ -37,3 +42,7 @@ Le serveur Flask écoute sur `0.0.0.0:5000` pour permettre l'accès via Replit.
 
 ## Dernières modifications
 - 23 octobre 2025 : Création initiale du projet avec toutes les fonctionnalités
+- 23 octobre 2025 : Refonte du design avec boutons outlined (style sobre)
+- 23 octobre 2025 : Ajout de bordure en pointillés avec coins arrondis pour la zone de prévisualisation
+- 23 octobre 2025 : Implémentation d'un système de sélection par menu déroulant pour l'ajout d'éléments
+- 23 octobre 2025 : Amélioration de l'accessibilité avec labels et attributs ARIA
