@@ -1,11 +1,12 @@
 let elements = [];
+let draggedElement = null;
 
 function addElementFromSelect() {
     const select = document.getElementById('element-type-select');
     const type = select.value;
     
     if (!type) {
-        alert('Veuillez sélectionner un type d\'élément.');
+        showNotification('Veuillez sélectionner un type d\'élément.', 'warning');
         return;
     }
     
@@ -26,14 +27,36 @@ function addElement(type) {
     elementDiv.className = 'element-item';
     elementDiv.dataset.id = elementId;
     elementDiv.dataset.type = type;
+    elementDiv.draggable = true;
+    
+    elementDiv.addEventListener('dragstart', handleDragStart);
+    elementDiv.addEventListener('dragend', handleDragEnd);
+    elementDiv.addEventListener('dragover', handleDragOver);
+    elementDiv.addEventListener('drop', handleDrop);
 
     let elementHTML = '';
+    const typeIcons = {
+        'title': '📌',
+        'text': '📄',
+        'qrcode': '📱',
+        'image': '🖼️'
+    };
+
+    const typeLabels = {
+        'title': 'Titre',
+        'text': 'Paragraphe',
+        'qrcode': 'QR Code',
+        'image': 'Image'
+    };
 
     if (type === 'title') {
         elementHTML = `
             <div class="element-header">
-                <span class="element-title">📌 Titre</span>
-                <button class="btn-remove" onclick="removeElement(${elementId})">Supprimer</button>
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
             </div>
             <div class="element-content">
                 <div class="input-group">
@@ -45,8 +68,11 @@ function addElement(type) {
     } else if (type === 'text') {
         elementHTML = `
             <div class="element-header">
-                <span class="element-title">📄 Paragraphe</span>
-                <button class="btn-remove" onclick="removeElement(${elementId})">Supprimer</button>
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
             </div>
             <div class="element-content">
                 <div class="input-group">
@@ -62,12 +88,15 @@ function addElement(type) {
     } else if (type === 'qrcode') {
         elementHTML = `
             <div class="element-header">
-                <span class="element-title">📱 QR Code</span>
-                <button class="btn-remove" onclick="removeElement(${elementId})">Supprimer</button>
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
             </div>
             <div class="element-content">
                 <div class="input-group">
-                    <label>URL ou texte pour le QR Code</label>
+                    <label>URL ou texte</label>
                     <input type="text" class="element-input" placeholder="https://exemple.com">
                 </div>
             </div>
@@ -75,8 +104,11 @@ function addElement(type) {
     } else if (type === 'image') {
         elementHTML = `
             <div class="element-header">
-                <span class="element-title">🖼️ Image</span>
-                <button class="btn-remove" onclick="removeElement(${elementId})">Supprimer</button>
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
             </div>
             <div class="element-content">
                 <div class="input-group">
@@ -84,7 +116,7 @@ function addElement(type) {
                         <span class="icon">📁</span> Choisir une image
                         <input type="file" class="element-file" accept="image/*" onchange="handleFileSelect(this, ${elementId})">
                     </label>
-                    <div class="file-name" id="filename-${elementId}">Aucun fichier sélectionné</div>
+                    <div class="file-name" id="filename-${elementId}">Aucun fichier</div>
                 </div>
             </div>
         `;
@@ -92,6 +124,60 @@ function addElement(type) {
 
     elementDiv.innerHTML = elementHTML;
     container.appendChild(elementDiv);
+    
+    elementDiv.style.animation = 'slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+}
+
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    const container = document.getElementById('elements-container');
+    const allItems = container.querySelectorAll('.element-item');
+    allItems.forEach(item => {
+        item.classList.remove('drag-over');
+    });
+    container.classList.remove('drag-over');
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    
+    const container = document.getElementById('elements-container');
+    container.classList.add('drag-over');
+    
+    return false;
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    if (draggedElement !== this) {
+        const container = document.getElementById('elements-container');
+        const allItems = Array.from(container.querySelectorAll('.element-item'));
+        const draggedIndex = allItems.indexOf(draggedElement);
+        const targetIndex = allItems.indexOf(this);
+        
+        if (draggedIndex < targetIndex) {
+            this.parentNode.insertBefore(draggedElement, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggedElement, this);
+        }
+    }
+    
+    return false;
 }
 
 function handleFileSelect(input, elementId) {
@@ -99,6 +185,13 @@ function handleFileSelect(input, elementId) {
     const filenameDiv = document.getElementById(`filename-${elementId}`);
     
     if (file) {
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showNotification('L\'image est trop grande (max 5 MB)', 'error');
+            input.value = '';
+            return;
+        }
+        
         filenameDiv.textContent = file.name;
         
         const reader = new FileReader();
@@ -108,28 +201,35 @@ function handleFileSelect(input, elementId) {
         };
         reader.readAsDataURL(file);
     } else {
-        filenameDiv.textContent = 'Aucun fichier sélectionné';
+        filenameDiv.textContent = 'Aucun fichier';
     }
 }
 
 function removeElement(elementId) {
     const element = document.querySelector(`[data-id="${elementId}"]`);
     if (element) {
-        element.remove();
-    }
-
-    const container = document.getElementById('elements-container');
-    if (container.children.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">✨</div>
-                <p>Commencez par ajouter un élément</p>
-            </div>
-        `;
+        element.style.animation = 'slideOut 0.2s ease';
+        setTimeout(() => {
+            element.remove();
+            
+            const container = document.getElementById('elements-container');
+            if (container.children.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">✨</div>
+                        <p>Commencez par ajouter un élément</p>
+                    </div>
+                `;
+            }
+        }, 200);
     }
 }
 
 function clearAll() {
+    if (!confirm('Voulez-vous vraiment tout effacer ?')) {
+        return;
+    }
+    
     const container = document.getElementById('elements-container');
     container.innerHTML = `
         <div class="empty-state">
@@ -137,14 +237,79 @@ function clearAll() {
             <p>Commencez par ajouter un élément</p>
         </div>
     `;
+    showNotification('Tous les éléments ont été supprimés', 'info');
 }
+
+function showNotification(message, type = 'info') {
+    const existingNotif = document.querySelector('.notification');
+    if (existingNotif) {
+        existingNotif.remove();
+    }
+    
+    const notif = document.createElement('div');
+    notif.className = `notification notification-${type}`;
+    notif.textContent = message;
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 20px;
+        background: ${type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : type === 'success' ? '#10b981' : '#6366f1'};
+        color: white;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        animation: slideDown 0.3s ease;
+    `;
+    
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.style.animation = 'slideUp 0.3s ease';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
+}
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideUp {
+        from {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+        to {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+        }
+    }
+    @keyframes slideOut {
+        to {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+    }
+`;
+document.head.appendChild(style);
 
 function generateImage() {
     const container = document.getElementById('elements-container');
     const elementDivs = container.querySelectorAll('.element-item');
     
     if (elementDivs.length === 0) {
-        alert('Veuillez ajouter au moins un élément avant de générer l\'image.');
+        showNotification('Ajoutez au moins un élément', 'warning');
         return;
     }
 
@@ -179,9 +344,13 @@ function generateImage() {
     });
 
     if (elementsData.length === 0) {
-        alert('Veuillez remplir au moins un élément avant de générer l\'image.');
+        showNotification('Remplissez au moins un élément', 'warning');
         return;
     }
+
+    const generateBtn = event.target;
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="icon">⏳</span> Génération...';
 
     fetch('/generate', {
         method: 'POST',
@@ -192,7 +361,7 @@ function generateImage() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Erreur lors de la génération de l\'image');
+            throw new Error('Erreur lors de la génération');
         }
         return response.blob();
     })
@@ -206,10 +375,14 @@ function generateImage() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        alert('✅ Image générée et téléchargée avec succès !');
+        showNotification('✅ Image téléchargée avec succès !', 'success');
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<span class="icon">🎨</span> Générer l\'image';
     })
     .catch(error => {
         console.error('Erreur:', error);
-        alert('❌ Erreur lors de la génération de l\'image. Veuillez réessayer.');
+        showNotification('❌ Erreur lors de la génération', 'error');
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<span class="icon">🎨</span> Générer l\'image';
     });
 }
