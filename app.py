@@ -145,6 +145,37 @@ def generate_image():
                 uploaded_img = uploaded_img.resize(new_size, Image.Resampling.LANCZOS)
             
             elements_data.append(('image', uploaded_img, None, uploaded_img.size[0], uploaded_img.size[1], None))
+        
+        elif element_type == 'separator':
+            separator_height = 3
+            separator_width = max_content_width
+            elements_data.append(('separator', None, None, separator_width, separator_height, None))
+        
+        elif element_type == 'space':
+            space_height = element.get('height', 30)
+            elements_data.append(('space', None, None, 0, space_height, None))
+        
+        elif element_type == 'barcode':
+            content = element.get('content', '')
+            if content and content.isdigit():
+                from barcode import Code128
+                from barcode.writer import ImageWriter
+                import io as barcode_io
+                
+                code128 = Code128(content, writer=ImageWriter())
+                barcode_buffer = barcode_io.BytesIO()
+                code128.write(barcode_buffer)
+                barcode_buffer.seek(0)
+                
+                barcode_img = Image.open(barcode_buffer)
+                barcode_img = barcode_img.convert('RGB')
+                
+                if barcode_img.size[0] > max_content_width:
+                    ratio = max_content_width / barcode_img.size[0]
+                    new_size = (int(barcode_img.size[0] * ratio), int(barcode_img.size[1] * ratio))
+                    barcode_img = barcode_img.resize(new_size, Image.Resampling.LANCZOS)
+                
+                elements_data.append(('barcode', barcode_img, None, barcode_img.size[0], barcode_img.size[1], None))
     
     total_height = padding
     for item in elements_data:
@@ -168,9 +199,19 @@ def generate_image():
             
             y_position += item[4] + element_spacing
         
-        elif item[0] == 'qrcode' or item[0] == 'image':
+        elif item[0] == 'qrcode' or item[0] == 'image' or item[0] == 'barcode':
             x_center = (width - item[3]) // 2
             final_img.paste(item[1], (x_center, y_position))
+            y_position += item[4] + element_spacing
+        
+        elif item[0] == 'separator':
+            y_mid = y_position + (item[4] // 2)
+            x_start = (width - item[3]) // 2
+            x_end = x_start + item[3]
+            draw.line([(x_start, y_mid), (x_end, y_mid)], fill='black', width=item[4])
+            y_position += item[4] + element_spacing
+        
+        elif item[0] == 'space':
             y_position += item[4] + element_spacing
     
     bordered_img = Image.new('RGB', (width, total_height), 'white')

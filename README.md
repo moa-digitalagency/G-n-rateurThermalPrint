@@ -1,6 +1,6 @@
-# 🎨 Créateur d'Images Personnalisées
+# 🖨️ Générateur d'Étiquettes Thermiques
 
-Une application web moderne pour générer des images personnalisées de 5 cm de largeur avec titres, texte, QR codes et images.
+Une application web moderne pour créer des étiquettes personnalisées pour imprimantes thermiques Bluetooth 5.8 cm.
 
 [English version below](#english-version)
 
@@ -10,6 +10,9 @@ Une application web moderne pour générer des images personnalisées de 5 cm de
 - 📝 **Paragraphes de texte** - Texte normal ou en gras avec retour à la ligne automatique
 - 📱 **QR Codes** - Générez des QR codes à partir d'URLs ou de texte
 - 🖼️ **Images** - Ajoutez vos propres images (redimensionnées automatiquement)
+- ➖ **Lignes horizontales** - Séparez les sections avec des lignes
+- ⬜ **Espaces vides** - Ajoutez de l'espacement vertical personnalisable
+- 📊 **Codes-barres** - Générez des codes-barres Code128
 - 🎯 **Glisser-déposer** - Réorganisez les éléments par glisser-déposer
 - 📱 **Design responsive** - Optimisé pour mobile et desktop
 - 🎨 **Design moderne** - Basé sur le système de design myoneart
@@ -21,7 +24,7 @@ Une application web moderne pour générer des images personnalisées de 5 cm de
 - Python 3.11 ou supérieur
 - pip ou uv (gestionnaire de paquets Python)
 
-### Étapes d'installation
+### Installation Locale
 
 1. **Cloner le projet**
 ```bash
@@ -45,17 +48,26 @@ pip install -r requirements.txt
 
 En développement:
 ```bash
-gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
-```
-
-Ou simplement:
-```bash
 python main.py
 ```
 
-4. **Accéder à l'application**
+L'application sera accessible sur `http://localhost:5000`
 
-Ouvrez votre navigateur à l'adresse: `http://localhost:5000`
+### Déploiement sur VPS (Production)
+
+Pour déployer sur un serveur VPS avec Nginx, utilisez le script automatisé :
+
+```bash
+chmod +x deploy_vps.sh
+sudo ./deploy_vps.sh
+```
+
+Ce script va :
+- Installer Python 3.11, Nginx, et toutes les dépendances
+- Configurer Gunicorn comme serveur WSGI
+- Configurer Nginx comme reverse proxy
+- Créer un service systemd pour le démarrage automatique
+- Configurer le pare-feu (optionnel)
 
 ## 📖 Utilisation
 
@@ -71,11 +83,14 @@ Ouvrez votre navigateur à l'adresse: `http://localhost:5000`
 - **📄 Paragraphe** - Texte normal (28px) avec option en gras
 - **📱 QR Code** - Code QR de 4 cm × 4 cm
 - **🖼️ Image** - Image personnalisée (max 5 MB)
+- **➖ Ligne horizontale** - Séparateur visuel (3px d'épaisseur)
+- **⬜ Espace vide** - Espacement vertical (10-200px)
+- **📊 Code-barres** - Code-barres Code128 (numérique uniquement)
 
 ## 🎨 Spécifications techniques
 
 ### Format de sortie
-- **Largeur**: 5 cm (≈ 590 pixels à 118 DPI)
+- **Largeur**: 5.8 cm (≈ 685 pixels à 118 DPI)
 - **Hauteur**: Calculée automatiquement selon le contenu
 - **Format**: PNG haute qualité (300 DPI)
 - **Bordure**: Pointillés arrondis avec coins arrondis
@@ -94,7 +109,8 @@ Ouvrez votre navigateur à l'adresse: `http://localhost:5000`
 - **Backend**: Flask (Python)
 - **Génération d'images**: Pillow (PIL)
 - **QR Codes**: qrcode
-- **Serveur**: Gunicorn
+- **Codes-barres**: python-barcode
+- **Serveur**: Gunicorn (production), Flask dev server (développement)
 - **Frontend**: HTML, CSS, JavaScript vanilla
 
 ## 📁 Structure du projet
@@ -109,7 +125,8 @@ Ouvrez votre navigateur à l'adresse: `http://localhost:5000`
 ├── templates/
 │   └── index.html      # Interface utilisateur
 ├── pyproject.toml      # Configuration uv/Python
-└── requirements.txt    # Dépendances Python
+├── requirements.txt    # Dépendances Python
+└── deploy_vps.sh       # Script de déploiement VPS
 ```
 
 ## 🎨 Design System
@@ -121,6 +138,43 @@ Ce projet utilise le **myoneart Design System** qui propose:
 - Animations fluides
 - Emojis pour l'iconographie
 - Style friendly et professionnel
+
+## 🔧 Configuration Production
+
+### Nginx
+
+Le script de déploiement configure automatiquement Nginx. Configuration manuelle si nécessaire:
+
+```nginx
+server {
+    listen 80;
+    server_name votre-domaine.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Gunicorn
+
+```bash
+gunicorn --bind 127.0.0.1:8000 --workers 4 --timeout 120 main:app
+```
+
+### Systemd Service
+
+Le service systemd est créé automatiquement par le script de déploiement:
+
+```bash
+sudo systemctl start label-generator
+sudo systemctl enable label-generator
+sudo systemctl status label-generator
+```
 
 ## 📝 Licence
 
@@ -134,9 +188,9 @@ Les contributions sont les bienvenues! N'hésitez pas à ouvrir une issue ou une
 
 # English Version
 
-## 🎨 Custom Image Generator
+## 🖨️ Thermal Label Generator
 
-A modern web application to generate custom 5cm-wide images with titles, text, QR codes, and images.
+A modern web application to create custom labels for 5.8 cm Bluetooth thermal printers.
 
 ## 🌟 Features
 
@@ -144,6 +198,9 @@ A modern web application to generate custom 5cm-wide images with titles, text, Q
 - 📝 **Text Paragraphs** - Normal or bold text with automatic line wrapping
 - 📱 **QR Codes** - Generate QR codes from URLs or text
 - 🖼️ **Images** - Add your own images (automatically resized)
+- ➖ **Horizontal Lines** - Separate sections with lines
+- ⬜ **Empty Spaces** - Add customizable vertical spacing
+- 📊 **Barcodes** - Generate Code128 barcodes
 - 🎯 **Drag & Drop** - Reorder elements by dragging
 - 📱 **Responsive Design** - Optimized for mobile and desktop
 - 🎨 **Modern Design** - Based on myoneart Design System
@@ -155,7 +212,7 @@ A modern web application to generate custom 5cm-wide images with titles, text, Q
 - Python 3.11 or higher
 - pip or uv (Python package manager)
 
-### Installation Steps
+### Local Installation
 
 1. **Clone the project**
 ```bash
@@ -179,17 +236,26 @@ pip install -r requirements.txt
 
 In development:
 ```bash
-gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
-```
-
-Or simply:
-```bash
 python main.py
 ```
 
-4. **Access the application**
+The application will be accessible at `http://localhost:5000`
 
-Open your browser at: `http://localhost:5000`
+### VPS Deployment (Production)
+
+To deploy on a VPS server with Nginx, use the automated script:
+
+```bash
+chmod +x deploy_vps.sh
+sudo ./deploy_vps.sh
+```
+
+This script will:
+- Install Python 3.11, Nginx, and all dependencies
+- Configure Gunicorn as WSGI server
+- Configure Nginx as reverse proxy
+- Create systemd service for automatic startup
+- Configure firewall (optional)
 
 ## 📖 Usage
 
@@ -205,11 +271,14 @@ Open your browser at: `http://localhost:5000`
 - **📄 Paragraph** - Normal text (28px) with bold option
 - **📱 QR Code** - 4 cm × 4 cm QR code
 - **🖼️ Image** - Custom image (max 5 MB)
+- **➖ Horizontal Line** - Visual separator (3px thick)
+- **⬜ Empty Space** - Vertical spacing (10-200px)
+- **📊 Barcode** - Code128 barcode (numeric only)
 
 ## 🎨 Technical Specifications
 
 ### Output Format
-- **Width**: 5 cm (≈ 590 pixels at 118 DPI)
+- **Width**: 5.8 cm (≈ 685 pixels at 118 DPI)
 - **Height**: Automatically calculated based on content
 - **Format**: High-quality PNG (300 DPI)
 - **Border**: Dashed rounded border with rounded corners
@@ -228,7 +297,8 @@ Open your browser at: `http://localhost:5000`
 - **Backend**: Flask (Python)
 - **Image Generation**: Pillow (PIL)
 - **QR Codes**: qrcode
-- **Server**: Gunicorn
+- **Barcodes**: python-barcode
+- **Server**: Gunicorn (production), Flask dev server (development)
 - **Frontend**: HTML, CSS, vanilla JavaScript
 
 ## 📁 Project Structure
@@ -243,7 +313,8 @@ Open your browser at: `http://localhost:5000`
 ├── templates/
 │   └── index.html      # User interface
 ├── pyproject.toml      # uv/Python configuration
-└── requirements.txt    # Python dependencies
+├── requirements.txt    # Python dependencies
+└── deploy_vps.sh       # VPS deployment script
 ```
 
 ## 🎨 Design System
@@ -255,6 +326,43 @@ This project uses the **myoneart Design System** featuring:
 - Smooth animations
 - Emojis for iconography
 - Friendly and professional style
+
+## 🔧 Production Configuration
+
+### Nginx
+
+The deployment script automatically configures Nginx. Manual configuration if needed:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Gunicorn
+
+```bash
+gunicorn --bind 127.0.0.1:8000 --workers 4 --timeout 120 main:app
+```
+
+### Systemd Service
+
+The systemd service is automatically created by the deployment script:
+
+```bash
+sudo systemctl start label-generator
+sudo systemctl enable label-generator
+sudo systemctl status label-generator
+```
 
 ## 📝 License
 

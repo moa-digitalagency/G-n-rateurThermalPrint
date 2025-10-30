@@ -39,14 +39,20 @@ function addElement(type) {
         'title': '📌',
         'text': '📄',
         'qrcode': '📱',
-        'image': '🖼️'
+        'image': '🖼️',
+        'separator': '➖',
+        'space': '⬜',
+        'barcode': '📊'
     };
 
     const typeLabels = {
         'title': 'Titre',
         'text': 'Paragraphe',
         'qrcode': 'QR Code',
-        'image': 'Image'
+        'image': 'Image',
+        'separator': 'Ligne horizontale',
+        'space': 'Espace vide',
+        'barcode': 'Code-barres'
     };
 
     if (type === 'title') {
@@ -117,6 +123,51 @@ function addElement(type) {
                         <input type="file" class="element-file" accept="image/*" onchange="handleFileSelect(this, ${elementId})">
                     </label>
                     <div class="file-name" id="filename-${elementId}">Aucun fichier</div>
+                </div>
+            </div>
+        `;
+    } else if (type === 'separator') {
+        elementHTML = `
+            <div class="element-header">
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
+            </div>
+            <div class="element-content">
+                <p style="font-size: 0.75rem; color: #6B7280;">Ligne de séparation horizontale</p>
+            </div>
+        `;
+    } else if (type === 'space') {
+        elementHTML = `
+            <div class="element-header">
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
+            </div>
+            <div class="element-content">
+                <div class="input-group">
+                    <label>Hauteur de l'espace (en pixels)</label>
+                    <input type="number" class="element-input" value="30" min="10" max="200">
+                </div>
+            </div>
+        `;
+    } else if (type === 'barcode') {
+        elementHTML = `
+            <div class="element-header">
+                <span class="element-title">
+                    <span class="drag-handle">⋮⋮</span>
+                    ${typeIcons[type]} ${typeLabels[type]}
+                </span>
+                <button class="btn-remove" onclick="removeElement(${elementId})">✕</button>
+            </div>
+            <div class="element-content">
+                <div class="input-group">
+                    <label>Code (numérique)</label>
+                    <input type="text" class="element-input" placeholder="123456789012">
                 </div>
             </div>
         `;
@@ -339,6 +390,16 @@ function generateImage() {
             const imageData = elementDiv.dataset.imageData;
             if (imageData) {
                 elementsData.push({ type: 'image', content: imageData });
+            }
+        } else if (type === 'separator') {
+            elementsData.push({ type: 'separator' });
+        } else if (type === 'space') {
+            const height = input ? parseInt(input.value) || 30 : 30;
+            elementsData.push({ type: 'space', height });
+        } else if (type === 'barcode') {
+            const content = input.value.trim();
+            if (content) {
+                elementsData.push({ type: 'barcode', content });
             }
         }
     });
